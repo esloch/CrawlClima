@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "crawlclima"
+version = "0.3.0"
+readme = "README.md"
+description='Rotinas para captura de dados climáticos'
+authors = ["Flavio Codeco Coelho <fccoelho@gmail.com>"]
+license = "GPL V3 License"
+repository = "https://github.com/AlertaDengue/AlertaDengueCaptura.git"
+homepage = "https://github.com/AlertaDengue/AlertaDengueCaptura.git"
+
+# Pypi classifiers: https://pypi.org/classifiers/
+classifiers = [  #! Update me
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+]
+
+packages = [
+    { include = "crawlclima" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyarrow = "^10.0.0"
+SQLAlchemy = "^1.4.44"
+python-dotenv = "^0.21.0"
+psycopg2 = "^2.9.3"
+docker-compose = "^1.29.2"
+python-metar = "^1.4.0"
+celery = "^5.2.7"
+pandas = "^1.5.2"
+loguru = "^0.6.0"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+autoflake8 = "^0.4.0"
+black = "^22.10.0"
+jupyterlab = "^3.5.0"
+pre-commit = "^2.20.0"
+isort = "^5.10.1"
+flake8 = "^5.0.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+# https://github.com/psf/black
+target-version = ["py311"]
+line-length = 79
+color = true
+
+exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | env
+    | venv
+    | migrations/*
+)/
+'''
+
+[tool.isort]
+profile = "black"
+src_paths = ["isort", "test"]

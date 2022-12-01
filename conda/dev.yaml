@@ -1,0 +1,13 @@
+name: crawlclima
+channels:
+  - conda-forge
+dependencies:
+  - celery
+  - geojson
+  - python
+  - poetry
+  - python-dotenv
+  - psycopg2-binary
+  - pip
+  - pip:
+    - python-metar
