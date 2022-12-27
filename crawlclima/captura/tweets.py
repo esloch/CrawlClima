@@ -1,32 +1,23 @@
 #!/usr/bin/env python
-"""
-Fetch a week of tweets
-Once a week go over the entire year to fill in possible gaps in the local database
-requires celery worker to be up and running
-but this script will actually be executed by cron
-"""
+import csv
 import sys
-from datetime import date, timedelta
+import psycopg2
+import requests
+from io import StringIO
+from pathlib import Path
+from loguru import logger
 from itertools import islice
-
-from crawlclima.config.settings import local
-from crawlclima.celery.tasks import pega_tweets
-
-sys.path.insert(0, local)
+from crawlclima.config import settings
+from datetime import datetime
 
 
-# Data inicial da captura
-today = date.fromordinal(date.today().toordinal())
-week_ago = date.fromordinal(date.today().toordinal()) - timedelta(8)
-year_start = date(date.today().year, 1, 1)
-
-with open(f'{local}/crawlclima/municipios') as f:
+with open(f'{Path(__file__).parent.parent}/utils/municipios') as f:
     municipios = f.read().split('\n')
 
 municipios = list(filter(None, municipios))
 
 
-def pega_tweets(self, inicio, fim, cidades=None, CID10='A90'):
+def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
     """
     Tarefa para capturar dados do Observatorio da dengue para uma ou mais cidades
 
@@ -36,7 +27,8 @@ def pega_tweets(self, inicio, fim, cidades=None, CID10='A90'):
     :param cidades: lista de cidades identificadas pelo geocódico(7 dig.) do IBGE - lista de strings.
     :return:
     """
-    conn = get_connection()
+    conn = psycopg2.connect(**settings.DB_CONNECTION)
+
     geocodigos = []
     for c in cidades:
         if c == '':
@@ -55,11 +47,11 @@ def pega_tweets(self, inicio, fim, cidades=None, CID10='A90'):
         + '&fim='
         + str(fim)
         + '&token='
-        + token
+        + settings.INWEB_TOKEN
     )
     try:
-        resp = requests.get('?'.join([base_url, params]))
-        logger.info('URL ==> ' + '?'.join([base_url, params]))
+        resp = requests.get('?'.join([settings.INWEB_URL, params]))
+        logger.info('URL ==> ' + '?'.join([settings.INWEB_URL, params]))
     except requests.RequestException as e:
         logger.error(f'Request retornou um erro: {e}')
         raise self.retry(exc=e, countdown=60)
@@ -127,18 +119,3 @@ def chunk(it, size):
     """
     it = iter(it)
     return iter(lambda: tuple(islice(it, size)), ())
-
-
-if today.isoweekday() == 5:
-    date_start = year_start
-else:
-    date_start = week_ago
-
-if len(sys.argv) > 1:
-    data = sys.argv[1].split('-')
-    date_start = date(int(data[0]), int(data[1]), int(data[2]))
-
-for cidades in chunk(municipios, 50):
-    pega_tweets.delay(
-        date_start.isoformat(), today.isoformat(), cidades, 'A90'
-    )

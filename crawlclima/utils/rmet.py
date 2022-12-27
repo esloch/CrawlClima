@@ -1,21 +1,24 @@
-import datetime
-import math
 import os
 import re
+import math
 import time
-
-import pandas as pd
+import datetime
 import psycopg2
 import requests
-from celery.utils.log import get_task_logger
-from dotenv import load_dotenv
-from metar.Metar import Metar, ParserError
+import pandas as pd
 
-from crawlclima.config.settings import db_config
+from models import save
+from pathlib import Path
+from loguru import logger
+from datetime import timedelta
+from dotenv import load_dotenv
+from crawlclima.config import settings
+from metar.Metar import Metar, ParserError
 
 load_dotenv()
 
-logger = get_task_logger('redemet')
+log_path = Path(__file__).parent / 'logs' / 'rmet.log'
+logger.add(log_path, colorize=True, retention=timedelta(days=15))
 
 
 def get_date_and_standard_metar(raw_data):
@@ -116,7 +119,7 @@ def check_day(day, estacao):
     sql = 'select data_dia from "Municipio"."Clima_wu" WHERE data_dia=DATE \'{}\' AND "Estacao_wu_estacao_id"=\'{}\''.format(
         day.strftime('%Y-%m-%d'), estacao
     )
-    with psycopg2.connect(**db_config) as conn:
+    with psycopg2.connect(settings.DB_CONNECTION) as conn:
         with conn.cursor() as curr:
             curr.execute(sql)
             rows = curr.fetchall()
@@ -223,7 +226,7 @@ def capture(station, date):
     return data
 
 
-def fetch_redemet(self, station, date):
+def fetch_redemet(station, date):
     data = []
     try:
         logger.info('Fetching {}'.format(station))

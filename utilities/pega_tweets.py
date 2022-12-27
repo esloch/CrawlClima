@@ -19,7 +19,7 @@ import datetime
 from itertools import islice
 
 from crawlclima.config.settings import local
-from crawlclima.celery.tasks import pega_tweets
+from crawlclima.captura.tweets import pega_tweets
 
 
 def chunk(it, size):

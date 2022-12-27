@@ -1,9 +1,14 @@
+import psycopg2
+import requests
+from pathlib import Path
+from loguru import logger
 from crawlclima.config import settings
 from datetime import datetime, timedelta
-from loguru import logger
-import requests
 
-import psycopg2
+
+log_path = Path(__file__).parent / 'logs' / 'cemaden.log'
+logger.add(log_path, colorize=True, retention=timedelta(days=15))
+
 
 def coleta_dados_cemaden(self, codigo, inicio, fim, by='uf'):
     """

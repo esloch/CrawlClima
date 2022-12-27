@@ -1,4 +1,5 @@
 # Create app celery  to start Crawlclima
+from celery.schedules import crontab
 from datetime import timedelta
 from celery import Celery
 
@@ -11,9 +12,16 @@ app.config_from_object('crawlclima.celery.celeryconfig')
 app.conf.beat_schedule = {
     'captura-chuva-cemaden': {
         'task': 'captura_chuva',
-        'schedule': timedelta(minutes=1),
+        'schedule': crontab(),
     },
-
+    'captura-temperatura-redmet': {
+        'task': 'captura_temperatura',
+        'schedule': crontab(),
+    },
+    'captura-tweets': {
+        'task': 'captura_tweets',
+        'schedule': crontab(),
+    },
 }
 
 if __name__ == '__main__':
