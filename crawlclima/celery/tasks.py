@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from loguru import logger
 from crawlclima.celery.celeryapp import app
@@ -8,8 +9,8 @@ from crawlclima.utils.cemaden import coleta_dados_cemaden
 from crawlclima.captura.tweets import fetch_tweets, chunk, municipios
 
 log_path = Path(__file__).parent / 'logs' / 'tasks.log'
-logger.add(log_path, colorize=True, retention=timedelta(days=15))
-
+logger.add(log_path, colorize=False, retention=timedelta(days=15))
+logger.add(sys.stderr, colorize=True)
 
 # Tasks executed by Celery Beat:
 

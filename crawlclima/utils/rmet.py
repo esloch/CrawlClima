@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import math
 import time
 import datetime
@@ -18,7 +19,8 @@ from metar.Metar import Metar, ParserError
 load_dotenv()
 
 log_path = Path(__file__).parent / 'logs' / 'rmet.log'
-logger.add(log_path, colorize=True, retention=timedelta(days=15))
+logger.add(log_path, colorize=False, retention=timedelta(days=15))
+logger.add(sys.stderr, colorize=True)
 
 
 def get_date_and_standard_metar(raw_data):

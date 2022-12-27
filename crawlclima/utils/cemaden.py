@@ -1,3 +1,4 @@
+import sys
 import psycopg2
 import requests
 from pathlib import Path
@@ -7,7 +8,8 @@ from datetime import datetime, timedelta
 
 
 log_path = Path(__file__).parent / 'logs' / 'cemaden.log'
-logger.add(log_path, colorize=True, retention=timedelta(days=15))
+logger.add(log_path, colorize=False, retention=timedelta(days=15))
+logger.add(sys.stderr, colorize=True)
 
 
 def coleta_dados_cemaden(self, codigo, inicio, fim, by='uf'):
