@@ -5,7 +5,6 @@ from crawlclima.celery.celeryapp import app
 from crawlclima.utils.models import find_all
 from datetime import datetime, timedelta, date
 from crawlclima.utils.rmet import fetch_redemet
-from crawlclima.utils.cemaden import coleta_dados_cemaden
 from crawlclima.captura.tweets import fetch_tweets, chunk, municipios
 
 log_path = Path(__file__).parent / 'logs' / 'tasks.log'
@@ -36,7 +35,7 @@ def pega_tweets(self):
     Fetch a week of tweets
     Once a week go over the entire year to fill in possible gaps in the local database
     requires celery worker to be up and running
-    but this script will actually be executed by cron
+    but this script will actually be executed by celery beat
     """
     today, week_ago, year_start = dates()
 
@@ -54,33 +53,7 @@ def pega_tweets(self):
             'A90'
         )
 
-
-@app.task(name='captura_chuva', bind=True)
-def captura_chuva(self):
-    ufs = ['PR', 'RJ', 'MG', 'ES', 'CE', 'SP']
-    dados_cemaden(self, ufs)
-
-
-####
-
-
-@app.task(bind=True)
-def dados_cemaden(self, ufs: list = ['PR', 'RJ', 'MG', 'ES', 'CE', 'SP']):
-    """
-    Fetch a week of data from cemaden
-    Once a week go over the entire year to fill in possible gaps in the local database
-    requires celery worker to be up and running
-    but this script will actually be executed by celery beat
-    """
-    today, week_ago, year_start = dates()
-
-    date_from = week_ago if today.isoweekday() != 5 else year_start
-    for uf in ufs:
-        try:
-            coleta_dados_cemaden(self, uf, date_from, today, by='uf')
-            logger.info(f'🌧️ Data for {uf} collected.')
-        except Exception as e:
-            logger.error(f'🔴 Task `captura_chuva` for {uf} failed.\n{e}')
+# ----
 
 
 def dates():

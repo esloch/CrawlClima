@@ -7,7 +7,6 @@ import datetime
 import psycopg2
 import requests
 import pandas as pd
-
 from models import save
 from pathlib import Path
 from loguru import logger

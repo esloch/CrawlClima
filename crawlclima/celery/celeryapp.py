@@ -10,17 +10,13 @@ app.config_from_object('crawlclima.celery.celeryconfig')
 
 # Celery Beat Scheduler
 app.conf.beat_schedule = {
-    'captura-chuva-cemaden': {
-        'task': 'captura_chuva',
-        'schedule': crontab(),
-    },
     'captura-temperatura-redmet': {
         'task': 'captura_temperatura',
-        'schedule': crontab(),
+        'schedule': crontab(minute=0, hour=21),
     },
     'captura-tweets': {
         'task': 'captura_tweets',
-        'schedule': crontab(),
+        'schedule': crontab(minute=0, hour=22),
     },
 }
 

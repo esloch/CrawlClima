@@ -44,12 +44,12 @@ jobs:
 
     - name: Build docker images
       run: |
-         make docker-build ENV=dev
+         make container-build ENV=dev
 
-    - name: Docker start web
+    - name: Docker start worker
       run: |
-        make docker-start ENV=dev
+        make container-start ENV=dev
 
     - name: Docker waiting services
       run: |
-        make docker-wait SERVICE=worker-crawlclima
+        make container-wait SERVICE=worker

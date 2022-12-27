@@ -1,5 +1,0 @@
-# these paths reflect current deploy server organization. In the future this can be automated by a deploy routine
-# Wed Nov 30 14:27:33
-# m h  dom mon dow   command
-# 35 14 * * * bash /activate.sh /opt/services/crawlclima/pegatweets.py >> /var/log/crawlclima/cron.log 2>&1
-15 17 * * * bash /activate.sh crawlclima/pegatemperatura.py >> /var/log/crawlclima/cron.log 2>&1
