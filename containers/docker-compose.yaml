@@ -32,7 +32,7 @@ services:
     depends_on:
       - rabbitmq
     healthcheck:
-      test: ["CMD-SHELL", 'celery --app crawlclima.fetchapp.app inspect ping -d "celery@$${HOSTNAME}"']
+      test: ["CMD-SHELL", 'celery --app crawlclima.celery.celeryapp.app inspect ping -d "celery@$${HOSTNAME}"']
       interval: 60s
       timeout: 10s
       retries: 5
