@@ -7,7 +7,7 @@ from io import StringIO
 from pathlib import Path
 from loguru import logger
 from itertools import islice
-from crawlclima.config import settings
+from crawlclima import config
 from datetime import datetime
 
 
@@ -27,7 +27,7 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
     :param cidades: lista de cidades identificadas pelo geocódico(7 dig.) do IBGE - lista de strings.
     :return:
     """
-    conn = psycopg2.connect(**settings.DB_CONNECTION)
+    conn = psycopg2.connect(**config.DB_CONNECTION)
 
     geocodigos = []
     for c in cidades:
@@ -47,11 +47,11 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
         + '&fim='
         + str(fim)
         + '&token='
-        + settings.INWEB_TOKEN
+        + config.INWEB_TOKEN
     )
     try:
-        resp = requests.get('?'.join([settings.INWEB_URL, params]))
-        logger.info('URL ==> ' + '?'.join([settings.INWEB_URL, params]))
+        resp = requests.get('?'.join([config.INWEB_URL, params]))
+        logger.info('URL ==> ' + '?'.join([config.INWEB_URL, params]))
     except requests.RequestException as e:
         logger.error(f'Request retornou um erro: {e}')
         raise self.retry(exc=e, countdown=60)

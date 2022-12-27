@@ -11,7 +11,7 @@ from pathlib import Path
 from loguru import logger
 from datetime import timedelta
 from dotenv import load_dotenv
-from crawlclima.config import settings
+from crawlclima import config
 from crawlclima.utils.models import save
 from metar.Metar import Metar, ParserError
 
@@ -120,7 +120,7 @@ def check_day(day, estacao):
     sql = 'select data_dia from "Municipio"."Clima_wu" WHERE data_dia=DATE \'{}\' AND "Estacao_wu_estacao_id"=\'{}\''.format(
         day.strftime('%Y-%m-%d'), estacao
     )
-    with psycopg2.connect(settings.DB_CONNECTION) as conn:
+    with psycopg2.connect(config.DB_CONNECTION) as conn:
         with conn.cursor() as curr:
             curr.execute(sql)
             rows = curr.fetchall()

@@ -14,7 +14,7 @@ logger.add(sys.stderr, colorize=True)
 # Tasks executed by Celery Beat:
 
 @app.task(name='captura_temperatura', bind=True)
-def pega_temperatura():
+def pega_temperatura(self):
     today, _, year_start = dates()
 
     yesterday = today - timedelta(days=1)

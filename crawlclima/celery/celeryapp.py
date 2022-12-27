@@ -1,6 +1,5 @@
 # Create app celery  to start Crawlclima
 from celery.schedules import crontab
-from datetime import timedelta
 from celery import Celery
 
 app = Celery('crawlclima')

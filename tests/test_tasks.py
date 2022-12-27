@@ -5,13 +5,13 @@ from datetime import datetime, timedelta
 
 import psycopg2
 
-from crawlclima.config import settings
+from crawlclima import config
 from crawlclima.celery.tasks import fetch_redemet, pega_tweets
 
 logger = logging.getLogger(__name__)  # Verify where this logger comes from
 
 try:
-    conn = psycopg2.connect(**settings.DB_CONNECTION)
+    conn = psycopg2.connect(**config.DB_CONNECTION)
 
 except Exception as e:
     logger.error(f'Unable to connect to Postgresql: {e}')

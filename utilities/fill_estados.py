@@ -7,7 +7,7 @@ import geojson
 import psycopg2
 from dotenv import load_dotenv
 
-from crawlclima.config.settings import db_config, dotenv_path
+from crawlclima.config.settings import db_config. dotenv_path
 
 load_dotenv(dotenv_path)
 
