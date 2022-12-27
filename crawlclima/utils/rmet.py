@@ -7,12 +7,12 @@ import datetime
 import psycopg2
 import requests
 import pandas as pd
-from models import save
 from pathlib import Path
 from loguru import logger
 from datetime import timedelta
 from dotenv import load_dotenv
 from crawlclima.config import settings
+from crawlclima.utils.models import save
 from metar.Metar import Metar, ParserError
 
 load_dotenv()
