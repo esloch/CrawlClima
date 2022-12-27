@@ -19,8 +19,8 @@ import argparse
 import time
 from datetime import datetime
 
-from crawlclima.models import find_all, save
-from crawlclima.redemet.rmet import capture, check_day, date_generator
+from crawlclima.utils.models import find_all, save
+from crawlclima.utils.rmet import capture, check_day, date_generator
 # breakpoint()
 
 rows = find_all(schema='Municipio', table='Estacao_wu')

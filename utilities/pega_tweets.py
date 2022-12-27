@@ -19,12 +19,12 @@ import datetime
 from itertools import islice
 
 from crawlclima.config.settings import local
-from crawlclima.tasks import pega_tweets
+from crawlclima.celery.tasks import pega_tweets
 
 
 def chunk(it, size):
     """
-    divide a long list into sizeable chuncks
+    divide a long list into sizeable chunks
     :param it: iterable
     :param size: chunk size
     :return:

@@ -9,7 +9,7 @@ from os.path import join as join_path
 import geojson
 from initials import initials
 
-from crawlclima.models import counties_save
+from crawlclima.utils.models import counties_save
 
 # logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger('fill_counties')

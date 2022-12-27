@@ -221,3 +221,29 @@ def capture(station, date):
     data['station'] = station
 
     return data
+
+
+def fetch_redemet(self, station, date):
+    data = []
+    try:
+        logger.info('Fetching {}'.format(station))
+        if isinstance(date, str):
+            date = datetime.strptime(date.split('T')[0], '%Y-%m-%d')
+        data = capture_date_range(station, date)
+    except Exception as e:
+        logger.error(
+            'Error fetching from {} at {} data is {}: error: {}'.format(
+                station, date, data, e
+            )
+        )
+        return
+    try:
+        if len(data) > 0:
+            save(data, schema='Municipio', table='Clima_wu')
+            logger.info('Saving {}'.format(station))
+        else:
+            logger.info('No data found {}'.format(station))
+    except Exception as e:
+        logger.error(
+            'Error saving to db with {} at {}: {}'.format(station, date, e)
+        )

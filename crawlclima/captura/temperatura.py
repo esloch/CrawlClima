@@ -8,8 +8,8 @@ import sys
 from datetime import datetime, timedelta
 
 # from crawlclima.config.settings import local
-from crawlclima.models import find_all
-from crawlclima.tasks import fetch_redemet
+from crawlclima.utils.models import find_all
+from crawlclima.celery.tasks import fetch_redemet
 
 # sys.path.insert(0, local)
 

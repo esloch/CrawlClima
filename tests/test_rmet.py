@@ -9,7 +9,7 @@ import pandas as pd
 import responses
 from dotenv import load_dotenv
 
-from crawlclima.redemet.rmet import (
+from crawlclima.utils.rmet import (
     capture,
     capture_date_range,
     clean_line,
@@ -24,6 +24,7 @@ from crawlclima.redemet.rmet import (
 
 load_dotenv()
 
+test_data_dir = 'crawlclima/tests/test_data'
 
 class TestFahrenheitToCelsius(unittest.TestCase):
     def test_32(self):
@@ -42,7 +43,7 @@ class TestCapture(unittest.TestCase):
     @mock.patch('crawlclima.redemet.rmet.time.sleep')
     def test_capture_return_type(self, mocked_sleep):
         with open(
-            'crawlclima/tests/test_data/test_example_data.json', 'r'
+            f'{test_data_dir}/test_example_data.json', 'r'
         ) as fd:
             response_text = fd.read()
 
@@ -67,7 +68,7 @@ class TestCapture(unittest.TestCase):
     @mock.patch('crawlclima.redemet.rmet.time.sleep')
     def test_capture_range(self, mocked_sleep):
         with open(
-            'crawlclima/tests/test_data/test_example_data.json', 'r'
+            f'{test_data_dir}/test_example_data.json', 'r'
         ) as fd:
             response_text = fd.read()
 
@@ -297,12 +298,12 @@ class TestCalculateHumidity(unittest.TestCase):
 
 class TestParsePage(unittest.TestCase):
     def test_skip_SPECI_entries(self):
-        with open('crawlclima/tests/test_data/example_data.txt', 'r') as fd:
+        with open(f'{test_data_dir}/example_data.txt', 'r') as fd:
             dataframe = parse_page(fd.read())
         self.assertEqual(len(dataframe), 24)
 
     def test_with_data(self):
-        with open('crawlclima/tests/test_data/example_data.txt', 'r') as fd:
+        with open(f'{test_data_dir}/example_data.txt', 'r') as fd:
             dataframe = parse_page(fd.read())
         self.assertEqual(
             dataframe.observation_time[0].to_pydatetime(),
@@ -312,7 +313,7 @@ class TestParsePage(unittest.TestCase):
 
     def test_with_empty_data(self):
         with open(
-            'crawlclima/tests/test_data/' 'example_with_no_record.txt',
+            f'{test_data_dir}/example_with_no_record.txt',
             'r',
         ) as fd:
             dataframe = parse_page(fd.read())
@@ -321,14 +322,14 @@ class TestParsePage(unittest.TestCase):
         self.assertTrue(dataframe.empty)
 
     def test_includes_humidity(self):
-        with open('crawlclima/tests/test_data/example_data.txt', 'r') as fd:
+        with open(f'{test_data_dir}/example_data.txt', 'r') as fd:
             dataframe = parse_page(fd.read())
         self.assertAlmostEqual(dataframe.humidity.min(), 55.32, 2)
 
 
 class TestDescribe(unittest.TestCase):
     def test_filled_dataframe(self):
-        with open('crawlclima/tests/test_data/example_data.txt', 'r') as fd:
+        with open(f'{test_data_dir}/example_data.txt', 'r') as fd:
             dataframe = parse_page(fd.read())
 
         summary = describe(dataframe)
@@ -349,7 +350,7 @@ class TestDescribe(unittest.TestCase):
 
     def test_empty_dataframe(self):
         with open(
-            'crawlclima/tests/test_data/' 'example_with_no_record.txt',
+            f'{test_data_dir}/example_with_no_record.txt',
             'r',
         ) as fd:
             dataframe = parse_page(fd.read())

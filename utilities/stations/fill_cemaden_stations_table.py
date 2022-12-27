@@ -18,7 +18,7 @@ db_config = {
     'user': os.getenv('PSQL_USER'),
     'password': os.getenv('PSQL_PASSWORD'),
     'host': os.getenv('PSQL_HOST'),
-    'port': os.getenv('PSQL_PORT=5432'),
+    'port': os.getenv('PSQL_PORT'),
 }
 
 base_url = 'http://150.163.255.246:18383/dados_pcd'

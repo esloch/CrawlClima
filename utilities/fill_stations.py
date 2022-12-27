@@ -3,7 +3,7 @@ import logging
 from os.path import abspath, dirname
 from os.path import join as join_path
 
-from crawlclima.models import save
+from crawlclima.utils.models import save
 
 # logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger('fill_stations')

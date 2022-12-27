@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import psycopg2
 
 from crawlclima.config.settings import db_config
-from crawlclima.tasks import fetch_redemet, pega_dados_cemaden, pega_tweets
+from crawlclima.celery.tasks import fetch_redemet, pega_dados_cemaden, pega_tweets
 
 logger = logging.getLogger(__name__)  # Verify where this logger comes from
 

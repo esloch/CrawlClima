@@ -13,11 +13,11 @@ logger = logging.getLogger('criabairro')
 try:
     conn = psycopg2.connect(
         "dbname='{}' user='{}' host='{}' port='{}' password='{}'".format(
-            os.getenv('POSTGRES_DATABASE'),
-            os.getenv('POSTGRES_USER'),
-            os.getenv('POSTGRES_HOST'),
-            os.getenv('POSTGRES_PORT'),
-            os.getenv('POSTGRES_PASSWORD'),
+            os.getenv('PSQL_DB'),
+            os.getenv('PSQL_USER'),
+            os.getenv('PSQL_HOST'),
+            os.getenv('PSQL_PORT'),
+            os.getenv('PSQL_PASSWORD'),
         )
     )
     cur = conn.cursor()
