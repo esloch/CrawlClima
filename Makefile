@@ -29,31 +29,31 @@ lint: ## formatting linter with poetry
 DOCKER=docker-compose \
 	--env-file .env \
 	--project-name crawlclima-$(ENV) \
-	--file docker/docker-compose.yaml
+	--file containers/docker-compose.yaml
 
 
-.PHONY:docker-build
-docker-build:
+.PHONY:container-build
+container-build:
 	$(DOCKER) build ${SERVICES}
 
-.PHONY:docker-start
-docker-start:
+.PHONY:container-start
+container-start:
 	$(DOCKER) up -d ${SERVICES}
 
-.PHONY:docker-logs-follow
-docker-logs-follow:
+.PHONY:container-logs-follow
+container-logs-follow:
 	$(DOCKER) logs --follow --tail 300 ${SERVICES}
 
-.PHONY:docker-stop
-docker-stop:
+.PHONY:container-stop
+container-stop:
 	$(DOCKER) down -v --remove-orphans
 
-.PHONY: docker-wait
-docker-wait:
-	ENV=${ENV} timeout 90 ./docker/scripts/healthcheck.sh ${SERVICE}
+.PHONY: container-wait
+container-wait:
+	ENV=${ENV} timeout 90 ./containers/scripts/healthcheck.sh ${SERVICE}
 
-.PHONY: docker-wait-all
-docker-wait-all:
+.PHONY: container-wait-all
+container-wait-all:
 	$(MAKE) docker-wait ENV=${ENV} SERVICE="crawlclima"
 
 

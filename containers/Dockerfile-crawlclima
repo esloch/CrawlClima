@@ -26,7 +26,7 @@ RUN chmod 0644 /etc/cron.d/cron_tasks \
   && crontab -u root /etc/cron.d/cron_tasks
 
 # Copy the script file to initialize cron and celery
-COPY crawlclima/docker/start_cron_celery.sh /start_cron_celery.sh
+COPY crawlclima/containers/start_cron_celery.sh /start_cron_celery.sh
 RUN chmod +x /start_cron_celery.sh
 
 # Create script activate environment

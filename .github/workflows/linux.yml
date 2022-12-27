@@ -52,4 +52,4 @@ jobs:
 
     - name: Docker waiting services
       run: |
-        make docker-wait SERVICE=web-crawler
+        make docker-wait SERVICE=worker-crawlclima
