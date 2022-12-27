@@ -7,17 +7,14 @@ from loguru import logger
 from io import StringIO
 
 from pathlib import Path
-from utils.cemaden import coleta_dados_cemaden
+from crawlclima.utils.cemaden import coleta_dados_cemaden
 
 import psycopg2
-import requests
-from celery.utils.log import get_task_logger
 
-from crawlclima.utils import cemaden
-from crawlclima.config.settings import base_url, db_config, token
+# from crawlclima.config.settings import base_url, db_config, token
 from crawlclima.celery.celeryapp import app
-from crawlclima.utils.models import save
-from crawlclima.utils.rmet import capture_date_range
+# from crawlclima.utils.models import save
+# from crawlclima.utils.rmet import capture_date_range
 
 
 work_dir = os.getcwd()
@@ -54,7 +51,7 @@ def pega_tweets(self, inicio, fim, cidades=None, CID10='A90'):
 
 
 @app.task(bind=True)
-def dados_cemaden(ufs: list = ['PR', 'RJ', 'MG', 'ES', 'CE', 'SP']):
+def dados_cemaden(self, ufs: list = ['PR', 'RJ', 'MG', 'ES', 'CE', 'SP']):
     """
     Fetch a week of data from cemaden
     Once a week go over the entire year to fill in possible gaps in the local database
@@ -67,10 +64,9 @@ def dados_cemaden(ufs: list = ['PR', 'RJ', 'MG', 'ES', 'CE', 'SP']):
     year_start = datetime(date.today().year, 1, 1)
 
     date_from = week_ago if today.isoweekday() != 5 else year_start
-
     for uf in ufs:
         try:
-            coleta_dados_cemaden(uf, date_from, today, 'uf')
+            coleta_dados_cemaden(self, uf, date_from, today, by='uf')
             logger.info(f'🌧️ Data for {uf} collected.')
         except Exception as e:
             logger.error(f'🔴 Task `captura_chuva` for {uf} failed.\n{e}')

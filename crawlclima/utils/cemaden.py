@@ -1,13 +1,22 @@
-def coleta_dados_cemaden(codigo, inicio, fim, by='uf'):
+from crawlclima.config import settings
+from datetime import datetime, timedelta
+from loguru import logger
+import requests
+
+import psycopg2
+
+def coleta_dados_cemaden(self, codigo, inicio, fim, by='uf'):
     """
     Esta tarefa captura dados climáticos de uma estação do CEMADEN, salvando os dados em um banco local.
+    :param self: Instancia da task do Celery.
     :param inicio: data-hora (UTC) de inicio da captura %Y%m%d%H%M
     :param fim: data-hora (UTC) de fim da captura %Y%m%d%H%M
     :param codigo: Código da estação de coleta do CEMADEN ou código de duas letras da uf: 'SP' ou 'RJ' ou...
     :param by: uf|estacao
     :return: Status code da tarefa
     """
-    conn = get_connection()
+    conn = psycopg2.connect(**settings.DB_CONNECTION)
+
     if isinstance(inicio, datetime):
         inicio = inicio.strftime('%Y%m%d%H%M')
 
@@ -40,17 +49,17 @@ def coleta_dados_cemaden(codigo, inicio, fim, by='uf'):
             return
 
     if by == 'uf':
-        url = cemaden.url_rede
+        url = settings.CEMADEN_DADOS_REDE
         pars = {
-            'chave': cemaden.chave,
+            'chave': settings.CEMADEN_KEY,
             'inicio': inicio.strftime('%Y%m%d%H%M'),
             'fim': fim.strftime('%Y%m%d%H%M'),
             'uf': codigo,
         }
     elif by == 'estacao':
-        url = cemaden.url_pcd
+        url = settings.CEMADEN_DADOS_PCD
         pars = {
-            'chave': cemaden.chave,
+            'chave': settings.CEMADEN_KEY,
             'inicio': inicio.strftime('%Y%m%d%H%M'),
             'fim': fim.strftime('%Y%m%d%H%M'),
             'codigo': codigo,
@@ -98,13 +107,17 @@ def coleta_dados_cemaden(codigo, inicio, fim, by='uf'):
             )
             raise self.retry(exc=requests.RequestException(), countdown=60)
         data = results.text.splitlines()[2:]
+    
+    try:
+        save_to_cemaden_db(cur, data, vnames)
 
-    save_to_cemaden_db(cur, data, vnames)
+    except Exception as e:
+        logger.error(e)
 
-    conn.commit()
-    cur.close()
-
-    return results.status_code
+    finally: 
+        conn.commit()
+        cur.close()
+        return results.status_code
 
 
 def save_to_cemaden_db(cur, data, vnames):
@@ -129,3 +142,17 @@ def save_to_cemaden_db(cur, data, vnames):
             sql,
             (doc['valor'], doc['sensor'], doc['datahora'], doc['cod_estacao']),
         )
+
+
+# Disable capture
+def fetch_results(pars, url):
+    try:
+        results = requests.get(url, params=pars)
+        return results
+    except requests.RequestException as e:
+        logger.error('Request retornou um erro: {}'.format(e))
+        results = e
+    except requests.ConnectionError as e:
+        logger.error('Conexão falhou com erro {}'.format(e))
+        results = e
+    
