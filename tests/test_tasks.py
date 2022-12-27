@@ -5,13 +5,13 @@ from datetime import datetime, timedelta
 
 import psycopg2
 
-from crawlclima.config.settings import db_config
-from crawlclima.celery.tasks import fetch_redemet, pega_dados_cemaden, pega_tweets
+from crawlclima.config import settings
+from crawlclima.celery.tasks import fetch_redemet, pega_tweets
 
 logger = logging.getLogger(__name__)  # Verify where this logger comes from
 
 try:
-    conn = psycopg2.connect(**db_config)
+    conn = psycopg2.connect(**settings.DB_CONNECTION)
 
 except Exception as e:
     logger.error(f'Unable to connect to Postgresql: {e}')
@@ -45,33 +45,6 @@ class TestTasks(unittest.TestCase):
         self.cur.execute('SELECT * FROM "Municipio"."Estacao_wu";')
         resp = self.cur.fetchall()
         self.assertGreater(len(resp), 0)
-
-
-@unittest.skip('Disable capture')
-class TestOldTasks(unittest.TestCase):
-    def setUp(self):
-        self.cur = conn.cursor()
-
-    def tearDown(self):
-        self.cur.close()
-
-    def test_pega_novos_dados_cemaden(self):
-        self.cur.execute(
-            'select datahora from "Municipio"."Clima_cemaden" order by datahora DESC ;'
-        )
-        lastdate = self.cur.fetchone()[0]
-        res = pega_dados_cemaden('RJ', lastdate, lastdate + timedelta(1))
-        self.cur.execute('select * from "Municipio"."Clima_cemaden";')
-        resp = self.cur.fetchall()
-        self.assertEquals(res, 200)
-        self.assertGreaterEqual(len(resp), 0)
-
-    def test_tries_to_fetch_data_which_is_already_in_DB(self):
-        res = pega_dados_cemaden('RJ', '201508100000', '201508120000')
-        self.cur.execute('select * from "Municipio"."Clima_cemaden";')
-        resp = self.cur.fetchall()
-        self.assertEquals(res, None)
-        self.assertGreaterEqual(len(resp), 0)
 
 
 if __name__ == '__main__':

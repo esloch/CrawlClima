@@ -4,6 +4,7 @@ import re
 import unittest
 from datetime import datetime, timedelta
 from unittest import mock
+from pathlib import Path
 
 import pandas as pd
 import responses
@@ -24,7 +25,7 @@ from crawlclima.utils.rmet import (
 
 load_dotenv()
 
-test_data_dir = 'crawlclima/tests/test_data'
+test_data_dir = Path(__file__).parent / 'test_data'
 
 class TestFahrenheitToCelsius(unittest.TestCase):
     def test_32(self):
