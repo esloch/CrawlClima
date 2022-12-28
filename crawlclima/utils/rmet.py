@@ -1,6 +1,5 @@
 import os
 import re
-import sys
 import math
 import time
 import datetime
@@ -19,7 +18,6 @@ load_dotenv()
 
 log_path = Path(__file__).parent / 'logs' / 'rmet.log'
 logger.add(log_path, colorize=False, retention=timedelta(days=15))
-logger.add(sys.stderr, colorize=True)
 
 
 def get_date_and_standard_metar(raw_data):
@@ -120,7 +118,8 @@ def check_day(day, estacao):
     sql = 'select data_dia from "Municipio"."Clima_wu" WHERE data_dia=DATE \'{}\' AND "Estacao_wu_estacao_id"=\'{}\''.format(
         day.strftime('%Y-%m-%d'), estacao
     )
-    with psycopg2.connect(config.DB_CONNECTION) as conn:
+
+    with psycopg2.connect(**config.DB_CONNECTION) as conn:
         with conn.cursor() as curr:
             curr.execute(sql)
             rows = curr.fetchall()
@@ -194,8 +193,7 @@ def capture(station, date):
         wait *= 3
     resp_data = resp.json()
 
-    with open('/opt/services/logs/capture-pegatemperatura.log', 'w+') as f:
-        f.write('{}'.format(resp_data['data']['data']))
+    logger.debug('{}'.format(resp_data['data']['data']))
 
     page = ''
     for dados in resp_data['data']['data']:

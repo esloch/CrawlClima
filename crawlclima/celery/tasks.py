@@ -9,12 +9,12 @@ from crawlclima.captura.tweets import fetch_tweets, chunk, municipios
 
 log_path = Path(__file__).parent / 'logs' / 'tasks.log'
 logger.add(log_path, colorize=False, retention=timedelta(days=15))
-logger.add(sys.stderr, colorize=True)
+
 
 # Tasks executed by Celery Beat:
 
 @app.task(name='captura_temperatura', bind=True)
-def pega_temperatura(self):
+def pega_temperatura():
     today, _, year_start = dates()
 
     yesterday = today - timedelta(days=1)
@@ -23,10 +23,12 @@ def pega_temperatura(self):
     stations = [row['estacao_id'] for row in rows]
 
     day = year_start if today.isoweekday() == 5 else yesterday
-
     for station in stations:
-        fetch_redemet(station, day)
-        logger.info(f'🌡️ Data from {station} fetched for day {day}')
+        try:
+            fetch_redemet(station, day)
+            logger.info(f'🌡️ Data from {station} fetched for day {day}')
+        except Exception as e:
+            logger.error(e)
 
 
 @app.task(name='captura_tweets', bind=True)
