@@ -1,23 +1,22 @@
 #!/usr/bin/env python
 import csv
-import sys
+from datetime import datetime
+from io import StringIO
+from itertools import islice
+from pathlib import Path
+
 import psycopg2
 import requests
-from io import StringIO
-from pathlib import Path
-from loguru import logger
-from itertools import islice
 from crawlclima import config
-from datetime import datetime
+from loguru import logger
 
-
-with open(f'{Path(__file__).parent.parent}/utils/municipios') as f:
-    municipios = f.read().split('\n')
+with open(f"{Path(__file__).parent.parent}/utils/municipios") as f:
+    municipios = f.read().split("\n")
 
 municipios = list(filter(None, municipios))
 
 
-def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
+def fetch_tweets(self, inicio, fim, cidades=None, CID10="A90"):
     """
     Tarefa para capturar dados do Observatorio da dengue para uma ou mais cidades
 
@@ -31,7 +30,7 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
 
     geocodigos = []
     for c in cidades:
-        if c == '':
+        if c == "":
             continue
         if len(str(c)) == 7:
             geocodigos.append((c, c[:-1]))
@@ -40,32 +39,32 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
     cidades = [c[1] for c in geocodigos]  # using geocodes with 6 digits
 
     params = (
-        'cidade='
-        + '&cidade='.join(cidades)
-        + '&inicio='
+        "cidade="
+        + "&cidade=".join(cidades)
+        + "&inicio="
         + str(inicio)
-        + '&fim='
+        + "&fim="
         + str(fim)
-        + '&token='
+        + "&token="
         + config.INWEB_TOKEN
     )
     try:
-        resp = requests.get('?'.join([config.INWEB_URL, params]))
-        logger.info('URL ==> ' + '?'.join([config.INWEB_URL, params]))
+        resp = requests.get("?".join([config.INWEB_URL, params]))
+        logger.info("URL ==> " + "?".join([config.INWEB_URL, params]))
     except requests.RequestException as e:
-        logger.error(f'Request retornou um erro: {e}')
+        logger.error(f"Request retornou um erro: {e}")
         raise self.retry(exc=e, countdown=60)
     except ConnectionError as e:
-        logger.error(f'Conexão ao Observ. da Dengue falhou com erro {e}')
+        logger.error(f"Conexão ao Observ. da Dengue falhou com erro {e}")
         raise self.retry(exc=e, countdown=60)
     try:
         cur = conn.cursor()
     except NameError as e:
         logger.error(
-            'Not saving data because connection to database could not be established.'
+            "Not saving data because connection to database could not be established."
         )
         raise e
-    header = ['data'] + cidades
+    header = ["data"] + cidades
     fp = StringIO(resp.text)
     data = list(csv.DictReader(fp, fieldnames=header))
     for i, c in enumerate(geocodigos):
@@ -84,7 +83,7 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
                     SELECT * FROM "Municipio"."Tweet"
                     WHERE "Municipio_geocodigo"=%s
                     AND data_dia=%s;""",
-                    (int(c[0]), datetime.strptime(r['data'], '%Y-%m-%d')),
+                    (int(c[0]), datetime.strptime(r["data"], "%Y-%m-%d")),
                 )
             except ValueError as e:
                 print(c, r)
@@ -96,7 +95,7 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
                 sql,
                 (
                     c[0],
-                    datetime.strptime(r['data'], '%Y-%m-%d').date(),
+                    datetime.strptime(r["data"], "%Y-%m-%d").date(),
                     r[c[1]],
                     CID10,
                 ),
@@ -104,8 +103,8 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10='A90'):
     conn.commit()
     cur.close()
 
-    with open('/opt/services/log/capture-pegatweets.log', 'w+') as f:
-        f.write('{}'.format(resp.text))
+    with open("/opt/services/log/capture-pegatweets.log", "w+") as f:
+        f.write("{}".format(resp.text))
 
     return resp.status_code
 

@@ -1,37 +1,39 @@
 import sys
+from datetime import date, datetime, timedelta
 from pathlib import Path
-from loguru import logger
+
+from crawlclima.captura.tweets import chunk, fetch_tweets, municipios
 from crawlclima.celery.celeryapp import app
 from crawlclima.utils.models import find_all
-from datetime import datetime, timedelta, date
 from crawlclima.utils.rmet import fetch_redemet
-from crawlclima.captura.tweets import fetch_tweets, chunk, municipios
+from loguru import logger
 
-log_path = Path(__file__).parent / 'logs' / 'tasks.log'
+log_path = Path(__file__).parent / "logs" / "tasks.log"
 logger.add(log_path, colorize=False, retention=timedelta(days=15))
 
 
 # Tasks executed by Celery Beat:
 
-@app.task(name='captura_temperatura', bind=True)
+
+@app.task(name="captura_temperatura", bind=True)
 def pega_temperatura():
     today, _, year_start = dates()
 
     yesterday = today - timedelta(days=1)
 
-    rows = find_all(schema='Municipio', table='Estacao_wu')
-    stations = [row['estacao_id'] for row in rows]
+    rows = find_all(schema="Municipio", table="Estacao_wu")
+    stations = [row["estacao_id"] for row in rows]
 
     day = year_start if today.isoweekday() == 5 else yesterday
     for station in stations:
         try:
             fetch_redemet(station, day)
-            logger.info(f'🌡️ Data from {station} fetched for day {day}')
+            logger.info(f"🌡️ Data from {station} fetched for day {day}")
         except Exception as e:
             logger.error(e)
 
 
-@app.task(name='captura_tweets', bind=True)
+@app.task(name="captura_tweets", bind=True)
 def pega_tweets(self):
     """
     Fetch a week of tweets
@@ -48,12 +50,9 @@ def pega_tweets(self):
 
     for cidades in chunk(municipios, 50):
         fetch_tweets(
-            self, 
-            date_start.isoformat(), 
-            today.isoformat(), 
-            cidades, 
-            'A90'
+            self, date_start.isoformat(), today.isoformat(), cidades, "A90"
         )
+
 
 # ----
 

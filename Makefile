@@ -25,6 +25,12 @@ lint: ## formatting linter with poetry
 
 # -----------
 
+
+.PHONY: tests
+tests:
+	python -m unittest tests/unit/*.py
+
+
 # DOCKER
 DOCKER=docker-compose \
 	--env-file .env \

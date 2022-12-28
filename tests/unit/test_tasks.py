@@ -4,7 +4,6 @@ import unittest
 from datetime import datetime, timedelta
 
 import psycopg2
-
 from crawlclima import config
 from crawlclima.celery.tasks import fetch_redemet, pega_tweets
 
@@ -14,11 +13,11 @@ try:
     conn = psycopg2.connect(**config.DB_CONNECTION)
 
 except Exception as e:
-    logger.error(f'Unable to connect to Postgresql: {e}')
+    logger.error(f"Unable to connect to Postgresql: {e}")
     sys.exit()
 
 
-@unittest.skip('waiting dbdemo,issue#56')
+@unittest.skip("waiting dbdemo,issue#56")
 class TestTasks(unittest.TestCase):
     def setUp(self):
         self.cur = conn.cursor()
@@ -27,14 +26,14 @@ class TestTasks(unittest.TestCase):
         self.cur.close()
 
     def test_task_pegatweets(self):
-        res = pega_tweets('2021-10-01', '2021-10-05', ['3304557', '3303302'])
+        res = pega_tweets("2021-10-01", "2021-10-05", ["3304557", "3303302"])
         self.cur.execute('SELECT * FROM "Municipio"."Tweet";')
         resp = self.cur.fetchall()
         self.assertEqual(res, 200)
         self.assertGreater(len(resp), 0)
 
     def test_task_fetch_redemet(self):
-        stations = 'SBAF'
+        stations = "SBAF"
         today = datetime.today()  # if user_date is None else user_date
         year_start = datetime(datetime.today().year, 1, 1)
         yesterday = today - timedelta(1)
@@ -47,6 +46,6 @@ class TestTasks(unittest.TestCase):
         self.assertGreater(len(resp), 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass
     # TestTasks().run()
