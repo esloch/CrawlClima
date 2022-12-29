@@ -10,7 +10,7 @@ load_dotenv()
 broker_url = os.getenv("CELERY_BROKER_URL")
 result_backend = os.getenv("CELERY_RESULT_BACKEND")
 result_expires = os.getenv("CELERY_TASK_RESULT_EXPIRES")
-include = ("crawlclima.celery.tasks",)
+include = ("crawlclima.tasks",)
 accept_content = ["application/json"]
 result_serializer = "json"
 worker_max_tasks_per_child = 10

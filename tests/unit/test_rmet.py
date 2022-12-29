@@ -8,7 +8,7 @@ from unittest import mock
 
 import pandas as pd
 import responses
-from crawlclima.utils.rmet import (
+from crawlclima.redmet.rmet import (
     capture,
     capture_date_range,
     clean_line,

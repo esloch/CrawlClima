@@ -4,13 +4,13 @@ import unittest
 from datetime import datetime, timedelta
 
 import psycopg2
-from crawlclima import config
-from crawlclima.celery.tasks import fetch_redemet, pega_tweets
+from crawlclima.config import dbconnections
+from crawlclima.tasks import pega_temperatura, pega_tweets
 
 logger = logging.getLogger(__name__)  # Verify where this logger comes from
 
 try:
-    conn = psycopg2.connect(**config.DB_CONNECTION)
+    conn = psycopg2.connect(**dbconnections.PSQL_URI)
 
 except Exception as e:
     logger.error(f"Unable to connect to Postgresql: {e}")
@@ -32,14 +32,14 @@ class TestTasks(unittest.TestCase):
         self.assertEqual(res, 200)
         self.assertGreater(len(resp), 0)
 
-    def test_task_fetch_redemet(self):
+    def test_task_pega_temperatura(self):
         stations = "SBAF"
         today = datetime.today()  # if user_date is None else user_date
         year_start = datetime(datetime.today().year, 1, 1)
         yesterday = today - timedelta(1)
         day = year_start if today.isoweekday() == 5 else yesterday
 
-        res = fetch_redemet(stations, day)
+        res = pega_temperatura(stations, day)
         self.assertEqual(res, None)
         self.cur.execute('SELECT * FROM "Municipio"."Estacao_wu";')
         resp = self.cur.fetchall()

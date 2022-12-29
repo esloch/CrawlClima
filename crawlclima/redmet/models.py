@@ -1,5 +1,5 @@
 import psycopg2
-from crawlclima import config
+from crawlclima.config import dbconnections
 
 field_names = {
     "Municipio": {
@@ -53,7 +53,7 @@ def find_all(schema, table):
 
     sql = sql_pattern.format(join(fields), table_full_name)
 
-    with psycopg2.connect(**config.DB_CONNECTION) as conn:
+    with psycopg2.connect(**dbconnections.PSQL_URI) as conn:
         with conn.cursor() as curr:
             curr.execute(sql)
             rows = [dict(zip(fields, row)) for row in curr.fetchall()]
@@ -73,7 +73,7 @@ def save(data, schema="Dengue_global", table="Municipio"):
 
     convert_names = names_converter(field_names[table])
 
-    with psycopg2.connect(**config.DB_CONNECTION) as conn:
+    with psycopg2.connect(**dbconnections.PSQL_URI) as conn:
         with conn.cursor() as curr:
             rows = map(convert_names, data)
             curr.executemany(sql, rows)
@@ -82,7 +82,7 @@ def save(data, schema="Dengue_global", table="Municipio"):
 
 
 def counties_save(data, schema="Dengue_global", table="Municipio"):
-    with psycopg2.connect(**config.DB_CONNECTION) as conn:
+    with psycopg2.connect(**dbconnections.PSQL_URI) as conn:
         with conn.cursor() as cur:
             for city in data:
                 sql = f"""SELECT COUNT(geocodigo) FROM "{schema}"."{table}" WHERE geocodigo={city['county_code']};"""

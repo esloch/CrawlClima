@@ -4,7 +4,7 @@ from celery.schedules import crontab
 
 app = Celery("crawlclima")
 
-app.config_from_object("crawlclima.celery.celeryconfig")
+app.config_from_object("crawlclima.config.celeryconfig")
 
 
 # Celery Beat Scheduler

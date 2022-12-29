@@ -7,13 +7,15 @@ from pathlib import Path
 
 import psycopg2
 import requests
-from crawlclima import config
+from crawlclima.config import dbconnections
 from loguru import logger
 
-with open(f"{Path(__file__).parent.parent}/utils/municipios") as f:
+with open(f"{Path(__file__).parent}/municipios") as f:
     municipios = f.read().split("\n")
 
 municipios = list(filter(None, municipios))
+INWEB_URL = "http://observatorio.inweb.org.br/dengueapp/api/1.0/totais"
+INWEB_TOKEN = "XXXXX"
 
 
 def fetch_tweets(self, inicio, fim, cidades=None, CID10="A90"):
@@ -26,7 +28,7 @@ def fetch_tweets(self, inicio, fim, cidades=None, CID10="A90"):
     :param cidades: lista de cidades identificadas pelo geocódico(7 dig.) do IBGE - lista de strings.
     :return:
     """
-    conn = psycopg2.connect(**config.DB_CONNECTION)
+    conn = psycopg2.connect(**dbconnections.PSQL_URI)
 
     geocodigos = []
     for c in cidades:

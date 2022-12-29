@@ -1,11 +1,10 @@
-import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from crawlclima.captura.tweets import chunk, fetch_tweets, municipios
-from crawlclima.celery.celeryapp import app
-from crawlclima.utils.models import find_all
-from crawlclima.utils.rmet import fetch_redemet
+from crawlclima.celeryapp import app
+from crawlclima.redmet.models import find_all
+from crawlclima.redmet.rmet import fetch_redemet
+from crawlclima.tweets.tweets import chunk, fetch_tweets, municipios
 from loguru import logger
 
 log_path = Path(__file__).parent / "logs" / "tasks.log"

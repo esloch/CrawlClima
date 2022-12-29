@@ -9,8 +9,8 @@ from pathlib import Path
 import pandas as pd
 import psycopg2
 import requests
-from crawlclima import config
-from crawlclima.utils.models import save
+from crawlclima.config import dbconnections
+from crawlclima.redmet.models import save
 from dotenv import load_dotenv
 from loguru import logger
 from metar.Metar import Metar, ParserError
@@ -120,7 +120,7 @@ def check_day(day, estacao):
         day.strftime("%Y-%m-%d"), estacao
     )
 
-    with psycopg2.connect(**config.DB_CONNECTION) as conn:
+    with psycopg2.connect(**dbconnections.PSQL_URI) as conn:
         with conn.cursor() as curr:
             curr.execute(sql)
             rows = curr.fetchall()
