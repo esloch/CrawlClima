@@ -10,7 +10,7 @@ import pandas as pd
 import psycopg2
 import requests
 from crawlclima.config import dbconnections
-from crawlclima.redmet.models import save
+from crawlclima.redemet.models import save
 from dotenv import load_dotenv
 from loguru import logger
 from metar.Metar import Metar, ParserError

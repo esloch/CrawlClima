@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 import psycopg2
 from crawlclima.config import dbconnections
-from crawlclima.tasks import pega_temperatura, pega_tweets
+from crawlclima.tasks import fetch_redemet, pega_tweets
 
 logger = logging.getLogger(__name__)  # Verify where this logger comes from
 
@@ -32,14 +32,14 @@ class TestTasks(unittest.TestCase):
         self.assertEqual(res, 200)
         self.assertGreater(len(resp), 0)
 
-    def test_task_pega_temperatura(self):
+    def test_task_fetch_redemet(self):
         stations = "SBAF"
         today = datetime.today()  # if user_date is None else user_date
         year_start = datetime(datetime.today().year, 1, 1)
         yesterday = today - timedelta(1)
         day = year_start if today.isoweekday() == 5 else yesterday
 
-        res = pega_temperatura(stations, day)
+        res = fetch_redemet(stations, day)
         self.assertEqual(res, None)
         self.cur.execute('SELECT * FROM "Municipio"."Estacao_wu";')
         resp = self.cur.fetchall()
