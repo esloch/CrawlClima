@@ -28,7 +28,6 @@ services:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq-crawlclima:5672
     volumes:
       - ./containers/log/:/opt/services/log/
-      # - ./crawlclima/crontask/:/etc/cron.d/
     depends_on:
       - rabbitmq
     healthcheck:
