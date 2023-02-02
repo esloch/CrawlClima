@@ -34,7 +34,7 @@ tests:
 # DOCKER
 DOCKER=docker-compose \
 	--env-file .env \
-	--project-name crawlclima$(ENV) \
+	--project-name $(ENV)_crawlclima \
 	--file containers/docker-compose.yaml
 
 
@@ -60,7 +60,7 @@ container-wait:
 
 .PHONY: container-wait-all
 container-wait-all:
-	$(MAKE) docker-wait ENV=${ENV} SERVICE="crawlclima"
+	$(MAKE) docker-wait ENV=${ENV} SERVICE="${ENV}_crawlclima"
 
 
 # Python
