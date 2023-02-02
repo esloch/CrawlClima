@@ -15,7 +15,7 @@ logger.add(log_path, colorize=False, retention=timedelta(days=15))
 
 
 @app.task(name="captura_temperatura", bind=True)
-def pega_temperatura():
+def pega_temperatura(self):
     today, _, year_start = dates()
 
     yesterday = today - timedelta(days=1)

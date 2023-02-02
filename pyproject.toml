@@ -21,6 +21,7 @@ classifiers = [  #! Update me
 
 packages = [
     { include = "crawlclima" },
+    { include = "utilities" },
 ]
 
 [tool.poetry.dependencies]
@@ -34,6 +35,9 @@ python-metar = "^1.4.0"
 celery = "^5.2.7"
 pandas = "^1.5.2"
 loguru = "^0.6.0"
+geobr = "^0.2.0"
+argparse = "^1.4.0"
+numpy = "^1.24.1"
 
 
 [tool.poetry.dev-dependencies]
