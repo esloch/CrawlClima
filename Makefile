@@ -34,7 +34,7 @@ tests:
 # DOCKER
 DOCKER=docker-compose \
 	--env-file .env \
-	--project-name crawlclima-$(ENV) \
+	--project-name crawlclima$(ENV) \
 	--file containers/docker-compose.yaml
 
 

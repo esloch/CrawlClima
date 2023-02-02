@@ -18,8 +18,8 @@ import argparse
 import datetime
 from itertools import islice
 
-from crawlclima.config.settings import local
-from crawlclima.captura.tweets import pega_tweets
+from crawlclima.config.dbconnections import PROJECTPATH
+from crawlclima.tweets import fetch_tweets
 
 
 def chunk(it, size):
@@ -33,21 +33,21 @@ def chunk(it, size):
     return iter(lambda: tuple(islice(it, size)), ())
 
 
-with open(f'{local}/crawlclima/municipios') as f:
-    municipios = f.read().split('\n')
+with open(f"{PROJECTPATH}/crawlclima/municipios") as f:
+    municipios = f.read().split("\n")
     print(municipios)
 
 
 date = lambda d: datetime.date.fromordinal(
-    datetime.datetime.strptime(d, '%Y-%m-%d').toordinal()
+    datetime.datetime.strptime(d, "%Y-%m-%d").toordinal()
 )
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument(
-    '--inicio', '-i', type=date, help='Data inicial de captura: yyyy-mm-dd'
+    "--inicio", "-i", type=date, help="Data inicial de captura: yyyy-mm-dd"
 )
 parser.add_argument(
-    '--fim', '-f', type=date, help='Data final de captura: yyyy-mm-dd'
+    "--fim", "-f", type=date, help="Data final de captura: yyyy-mm-dd"
 )
 args = parser.parse_args()
 
@@ -55,14 +55,14 @@ start, end = args.inicio, args.fim
 
 for cidades in chunk(municipios, 50):
     print(
-        'Fetching data start from {} to {} for {} '.format(
+        "Fetching data start from {} to {} for {} ".format(
             start.isoformat(), end.isoformat(), cidades
         )
     )
-    res = pega_tweets(
+    res = fetch_tweets(
         inicio=start.isoformat(),
         fim=end.isoformat(),
         cidades=cidades,
-        CID10='A90',
+        CID10="A90",
     )
-    print('Successful! ', res)
+    print("Successful! ", res)

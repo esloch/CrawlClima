@@ -4,7 +4,7 @@ from pathlib import Path
 from crawlclima.celeryapp import app
 from crawlclima.redemet.models import find_all
 from crawlclima.redemet.rmet import fetch_redemet
-from crawlclima.tweets.tweets import chunk, fetch_tweets, municipios
+from crawlclima.tweets import chunk, fetch_tweets, municipios
 from loguru import logger
 
 log_path = Path(__file__).parent / "logs" / "tasks.log"
