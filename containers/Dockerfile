@@ -37,6 +37,7 @@ COPY --chown=epiuser:epiuser conda/dev.yaml /tmp/environment.yaml
 COPY --chown=epiuser:epiuser containers/scripts/poetry-install.sh /tmp/poetry-install.sh
 
 COPY --chown=epiuser:epiuser crawlclima /opt/services/crawlclima
+COPY --chown=epiuser:epiuser utilities /opt/services/utilities
 
 # Copy the script file to initialize celery beat
 COPY --chown=epiuser:epiuser containers/scripts/start_celery_beat.sh /start_celery_beat.sh
