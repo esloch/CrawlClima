@@ -11,11 +11,11 @@ app.config_from_object("crawlclima.config.celeryconfig")
 app.conf.beat_schedule = {
     "captura-temperatura-redmet": {
         "task": "captura_temperatura",
-        "schedule": crontab(minute="*", hour="*"),
+        "schedule": crontab(minute="*", hour="22"),
     },
     "captura-tweets": {
         "task": "captura_tweets",
-        "schedule": crontab(minute="*", hour="*"),
+        "schedule": crontab(minute="*", hour="23"),
     },
 }
 
