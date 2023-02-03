@@ -13,10 +13,10 @@ app.conf.beat_schedule = {
         "task": "captura_temperatura",
         "schedule": crontab(minute="*", hour="22"),
     },
-    "captura-tweets": {
-        "task": "captura_tweets",
-        "schedule": crontab(minute="*", hour="23"),
-    },
+    # "captura-tweets": {
+    #     "task": "captura_tweets",
+    #     "schedule": crontab(minute="*", hour="23"),
+    # },
 }
 
 if __name__ == "__main__":
