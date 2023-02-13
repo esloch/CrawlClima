@@ -27,7 +27,7 @@ services:
     environment:
       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq-crawlclima:5672
     volumes:
-      - ./containers/log/:/opt/services/log/
+      - ../containers/log/:/opt/services/log/
     depends_on:
       - rabbitmq
     healthcheck:

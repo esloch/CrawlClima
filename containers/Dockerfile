@@ -19,8 +19,8 @@ RUN addgroup --gid ${HOST_GID} epiuser \
   && echo "epiuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/epiuser \
   && chmod 0440 /etc/sudoers.d/epiuser \
   && export ENV_NAME="$ENV_NAME" \
-  && mkdir -p /opt/conda /opt/services/logs /opt/services/crawlclima \
-  && chmod -R a+rwx /opt/conda /opt/services/crawlclima/ /opt/services/logs /tmp \
+  && mkdir -p /opt/conda /opt/services/ \
+  && chmod -R a+rwx /opt/conda /opt/services/ /tmp \
   && chown epiuser:epiuser /opt/services/ /tmp \
   && echo 'source /opt/conda/bin/activate "$ENV_NAME" && exec "$@"' > /activate.sh \
   && echo 'source activate "$ENV_NAME"' >  /home/epiuser/.bashrc \
