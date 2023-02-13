@@ -1,305 +1,63 @@
-import csv
-import os
-import sys
-import time
-from datetime import datetime, timedelta
-from io import StringIO
+from datetime import date, datetime, timedelta
+from pathlib import Path
 
-import psycopg2
-import requests
-from celery.utils.log import get_task_logger
+from crawlclima.celeryapp import app
+from crawlclima.redemet.models import find_all
+from crawlclima.redemet.rmet import fetch_redemet
+from crawlclima.tweets import chunk, fetch_tweets, municipios
+from loguru import logger
 
-from crawlclima.config import cemaden
-from crawlclima.config.settings import base_url, db_config, token
-from crawlclima.fetchapp import app
-from crawlclima.models import save
-from crawlclima.redemet.rmet import capture_date_range
-
-logger = get_task_logger('Captura')
-
-work_dir = os.getcwd()
-route_abs = os.path.dirname(os.path.abspath(work_dir))
-sys.path.insert(0, route_abs)
+log_path = Path(__file__).parent / "logs" / "tasks.log"
+logger.add(log_path, colorize=False, retention=timedelta(days=15))
 
 
-def get_connection():
-    try:
-        conn = psycopg2.connect(**db_config)
-
-    except Exception as e:
-        logger.error('Unable to connect to Postgresql: {}'.format(e))
-        raise e
-    return conn
+# Tasks executed by Celery Beat:
 
 
-@app.task
-def mock(t):
-    time.sleep(t)
-    return 'done'
+@app.task(name="captura_temperatura", bind=True)
+def pega_temperatura(self):
+    today, _, year_start = dates()
 
+    yesterday = today - timedelta(days=1)
 
-@app.task(bind=True)
-def fetch_redemet(self, station, date):
-    data = []
-    try:
-        logger.info('Fetching {}'.format(station))
-        if isinstance(date, str):
-            date = datetime.strptime(date.split('T')[0], '%Y-%m-%d')
-        data = capture_date_range(station, date)
-    except Exception as e:
-        logger.error(
-            'Error fetching from {} at {} data is {}: error: {}'.format(
-                station, date, data, e
-            )
-        )
-        return
-    try:
-        if len(data) > 0:
-            save(data, schema='Municipio', table='Clima_wu')
-            logger.info('Saving {}'.format(station))
-        else:
-            logger.info('No data found {}'.format(station))
-    except Exception as e:
-        logger.error(
-            'Error saving to db with {} at {}: {}'.format(station, date, e)
-        )
+    rows = find_all(schema="Municipio", table="Estacao_wu")
+    stations = [row["estacao_id"] for row in rows]
 
-
-@app.task(bind=True)
-def pega_tweets(self, inicio, fim, cidades=None, CID10='A90'):
-    """
-    Tarefa para capturar dados do Observatorio da dengue para uma ou mais cidades
-
-    :param CID10: código CID10 para a doença. default: dengue clássico
-    :param inicio: data de início da captura: yyyy-mm-dd
-    :param fim: data do fim da captura: yyyy-mm-dd
-    :param cidades: lista de cidades identificadas pelo geocódico(7 dig.) do IBGE - lista de strings.
-    :return:
-    """
-    conn = get_connection()
-    geocodigos = []
-    for c in cidades:
-        if c == '':
-            continue
-        if len(str(c)) == 7:
-            geocodigos.append((c, c[:-1]))
-        else:
-            geocodigos.append((c, c))
-    cidades = [c[1] for c in geocodigos]  # using geocodes with 6 digits
-
-    params = (
-        'cidade='
-        + '&cidade='.join(cidades)
-        + '&inicio='
-        + str(inicio)
-        + '&fim='
-        + str(fim)
-        + '&token='
-        + token
-    )
-    try:
-        resp = requests.get('?'.join([base_url, params]))
-        logger.info('URL ==> ' + '?'.join([base_url, params]))
-    except requests.RequestException as e:
-        logger.error(f'Request retornou um erro: {e}')
-        raise self.retry(exc=e, countdown=60)
-    except ConnectionError as e:
-        logger.error(f'Conexão ao Observ. da Dengue falhou com erro {e}')
-        raise self.retry(exc=e, countdown=60)
-    try:
-        cur = conn.cursor()
-    except NameError as e:
-        logger.error(
-            'Not saving data because connection to database could not be established.'
-        )
-        raise e
-    header = ['data'] + cidades
-    fp = StringIO(resp.text)
-    data = list(csv.DictReader(fp, fieldnames=header))
-    for i, c in enumerate(geocodigos):
-        sql = """
-            INSERT INTO "Municipio"."Tweet" (
-                "Municipio_geocodigo",
-                data_dia ,
-                numero,
-                "CID10_codigo")
-                VALUES(%s, %s, %s, %s);
-        """
-        for r in data[1:]:
-            try:
-                cur.execute(
-                    """
-                    SELECT * FROM "Municipio"."Tweet"
-                    WHERE "Municipio_geocodigo"=%s
-                    AND data_dia=%s;""",
-                    (int(c[0]), datetime.strptime(r['data'], '%Y-%m-%d')),
-                )
-            except ValueError as e:
-                print(c, r)
-                raise e
-            res = cur.fetchall()
-            if res:
-                continue
-            cur.execute(
-                sql,
-                (
-                    c[0],
-                    datetime.strptime(r['data'], '%Y-%m-%d').date(),
-                    r[c[1]],
-                    CID10,
-                ),
-            )
-    conn.commit()
-    cur.close()
-
-    with open('/opt/services/log/capture-pegatweets.log', 'w+') as f:
-        f.write('{}'.format(resp.text))
-
-    return resp.status_code
-
-
-# Disable capture
-def fetch_results(pars, url):
-    try:
-        results = requests.get(url, params=pars)
-    except requests.RequestException as e:
-        logger.error('Request retornou um erro: {}'.format(e))
-        results = e
-    except requests.ConnectionError as e:
-        logger.error('Conexão falhou com erro {}'.format(e))
-        results = e
-    return results
-
-
-@app.task(bind=True)
-def pega_dados_cemaden(self, codigo, inicio, fim, by='uf'):
-    """
-    Esta tarefa captura dados climáticos de uma estação do CEMADEN, salvando os dados em um banco local.
-    :param inicio: data-hora (UTC) de inicio da captura %Y%m%d%H%M
-    :param fim: data-hora (UTC) de fim da captura %Y%m%d%H%M
-    :param codigo: Código da estação de coleta do CEMADEN ou código de duas letras da uf: 'SP' ou 'RJ' ou...
-    :param by: uf|estacao
-    :return: Status code da tarefa
-    """
-    conn = get_connection()
-    if isinstance(inicio, datetime):
-        inicio = inicio.strftime('%Y%m%d%H%M')
-
-    if isinstance(fim, datetime):
-        fim = fim.strftime('%Y%m%d%H%M')
-
-    try:
-        assert datetime.strptime(inicio, '%Y%m%d%H%M') < datetime.strptime(
-            fim, '%Y%m%d%H%M'
-        )
-    except AssertionError:
-        logger.error('data de início posterior à de fim.')
-        raise AssertionError
-    except ValueError as e:
-        logger.error('Data mal formatada: {}'.format(e))
-        raise ValueError
-
-    # Check for latest records in the database
-    cur = conn.cursor()
-    cur.execute(
-        'select datahora from "Municipio"."Clima_cemaden" ORDER BY datahora DESC '
-    )
-    ultima_data = cur.fetchone()
-    inicio = datetime.strptime(inicio, '%Y%m%d%H%M')
-    fim = datetime.strptime(fim, '%Y%m%d%H%M')
-    if ultima_data is not None:
-        if ultima_data[0] > inicio:
-            inicio = ultima_data[0]
-        if inicio >= fim:
-            return
-
-    if by == 'uf':
-        url = cemaden.url_rede
-        pars = {
-            'chave': cemaden.chave,
-            'inicio': inicio.strftime('%Y%m%d%H%M'),
-            'fim': fim.strftime('%Y%m%d%H%M'),
-            'uf': codigo,
-        }
-    elif by == 'estacao':
-        url = cemaden.url_pcd
-        pars = {
-            'chave': cemaden.chave,
-            'inicio': inicio.strftime('%Y%m%d%H%M'),
-            'fim': fim.strftime('%Y%m%d%H%M'),
-            'codigo': codigo,
-        }
-
-    # puxa os dados do servidor do CEMADEN
-    if fim - inicio > timedelta(hours=23, minutes=59):
-        fim_t = inicio + timedelta(hours=23, minutes=59)
-        data = []
-        while fim_t < fim:
-            pars['fim'] = fim_t.strftime('%Y%m%d%H%M')
-            results = fetch_results(pars, url)
-            try:
-                vnames = results.text.splitlines()[1].strip().split(';')
-            except IndexError as e:
-                logger.warning(
-                    'empty response from cemaden on {}-{}'.format(
-                        inicio.strftime('%Y%m%d%H%M'),
-                        fim_t.strftime('%Y%m%d%H%M'),
-                    )
-                )
-            if not results.status_code == 200:
-                continue  # try again
-            data += results.text.splitlines()[2:]
-            fim_t += timedelta(hours=23, minutes=59)
-            inicio += timedelta(hours=23, minutes=59)
-            pars['inicio'] = inicio.strftime('%Y%m%d%H%M')
-    else:
-        results = fetch_results(pars, url)
-        if isinstance(results, Exception):
-            raise self.retry(exc=results, countdown=60)
+    day = year_start if today.isoweekday() == 5 else yesterday
+    for station in stations:
         try:
-            vnames = results.text.splitlines()[1].strip().split(';')
-        except IndexError:
-            logger.warning(
-                'empty response from cemaden on {}-{}'.format(
-                    inicio.strftime('%Y%m%d%H%M'), fim.strftime('%Y%m%d%H%M')
-                )
-            )
-        if not results.status_code == 200:
-            logger.error(
-                'Request to CEMADEN server failed with code: {}'.format(
-                    results.status_code
-                )
-            )
-            raise self.retry(exc=requests.RequestException(), countdown=60)
-        data = results.text.splitlines()[2:]
-
-    save_to_cemaden_db(cur, data, vnames)
-
-    conn.commit()
-    cur.close()
-
-    return results.status_code
+            fetch_redemet(station, day)
+            logger.info(f"🌡️ Data from {station} fetched for day {day}")
+        except Exception as e:
+            logger.error(e)
 
 
-def save_to_cemaden_db(cur, data, vnames):
+@app.task(name="captura_tweets", bind=True)
+def pega_tweets(self):
     """
-    Saves the rceived data to the "Clima_cemaden" table
-    :param cur: db cursor
-    :param data: data to be saved
-    :param vnames: variable names in the server's response
-    :return: None
+    Fetch a week of tweets
+    Once a week go over the entire year to fill in possible gaps in the local database
+    requires celery worker to be up and running
+    but this script will actually be executed by celery beat
     """
-    vnames = [v.replace('.', '_') for v in vnames]
-    sql = 'insert INTO "Municipio"."Clima_cemaden" (valor,sensor,datahora,"Estacao_cemaden_codestacao") values(%s, %s, %s, %s);'
-    for linha in data:
-        doc = dict(zip(vnames, linha.strip().split(';')))
-        doc['latitude'] = float(doc['latitude'])
-        doc['longitude'] = float(doc['longitude'])
-        doc['valor'] = float(doc['valor'])
-        doc['datahora'] = datetime.strptime(
-            doc['datahora'], '%Y-%m-%d %H:%M:%S'
+    today, week_ago, year_start = dates()
+
+    if today.isoweekday() == 5:
+        date_start = year_start
+    else:
+        date_start = week_ago
+
+    for cidades in chunk(municipios, 50):
+        fetch_tweets(
+            self, date_start.isoformat(), today.isoformat(), cidades, "A90"
         )
-        cur.execute(
-            sql,
-            (doc['valor'], doc['sensor'], doc['datahora'], doc['cod_estacao']),
-        )
+
+
+# ----
+
+
+def dates():
+    today = datetime.fromordinal(date.today().toordinal())
+    week_ago = datetime.fromordinal(date.today().toordinal()) - timedelta(8)
+    year_start = datetime(date.today().year, 1, 1)
+    return today, week_ago, year_start

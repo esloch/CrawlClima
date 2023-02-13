@@ -42,14 +42,17 @@ jobs:
     - name: Create env file
       run: envsubst < env.tpl > .env
 
+    - name: Run tests
+      run: make tests
+
     - name: Build docker images
       run: |
-         make docker-build ENV=dev
+         make container-build ENV=dev
 
-    - name: Docker start web
+    - name: Docker start worker
       run: |
-        make docker-start ENV=dev
+        make container-start ENV=dev
 
     - name: Docker waiting services
       run: |
-        make docker-wait SERVICE=web-crawler
+        make container-wait SERVICE=worker

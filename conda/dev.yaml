@@ -8,6 +8,7 @@ dependencies:
   - poetry
   - python-dotenv
   - psycopg2-binary
+  - geojson
   - pip
   - pip:
     - python-metar

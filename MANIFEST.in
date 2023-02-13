@@ -11,11 +11,11 @@ recursive-exclude crawlclima/tests
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * downloader_app/
-recursive-exclude crawlclima/docker/
+recursive-exclude crawlclima/containers/
 
 recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
 
 include *.txt
 recursive-include crawlclima *.txt *.py
-prune crawlclima/docker
+prune crawlclima/containers
 prune crawlclima/tests
